@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=, initial-scale=1.0">
+  <title>Resistor manual</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+
+<body>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .resistor {
+      font-size: 2em;
+
+      >* {
+        margin-right: -.3em;
+        display: inline-block;
+        background-color: hsla(37, 40%, 83%, 1);
+        height: 3em;
+        width: 2em;
+      }
+
+      .left,
+      .right {
+        border-radius: 10px;
+      }
+
+      .band {
+        position: relative;
+        width: 1.2em;
+        height: 2.2em;
+        margin-bottom: .4em;
+
+        &:after {
+          content: ' ';
+          position: absolute;
+          left: .3em;
+          width: 0.5em;
+          height: 2.2em;
+        }
+
+        &.black:after {
+          background-color: hsl(0, 0%, 0%, 1);
+        }
+
+        &.brown:after {
+          background-color: hsla(30, 100%, 29%, 1);
+        }
+
+        &.red:after {
+          background-color: hsla(0, 100%, 50%, 1);
+        }
+
+        &.orange:after {
+          background-color: hsla(30, 100%, 50%, 1);
+        }
+
+        &.yellow:after {
+          background-color: hsla(60, 100%, 50%, 1);
+        }
+
+        &.green:after {
+          background-color: hsla(120, 100%, 50%, 1);
+        }
+
+        &.blue:after {
+          background-color: hsla(240, 100%, 50%, 1);
+        }
+
+        &.violet:after {
+          background-color: hsla(274, 100%, 50%, 1);
+        }
+
+        &.grey:after {
+          background-color: hsla(0, 0%, 50%, 1);
+        }
+
+        &.white:after {
+          background-color: hsla(0, 100%, 100%, 1);
+        }
+
+        &.gold:after {
+          background-color: hsla(46, 65%, 52%, 1);
+        }
+
+        &.silver:after {
+          background-color: hsla(0, 0%, 75%, 1);
+        }
+      }
+    }
+    .resistor{
+        text-align:center;
+        
+    }
+    .band{
+        text-align:center !important ;
+        
+    }
+  </style>
+
+
+
+
+<div class="container mt-3" >
+  <!-- TEMPLATES -->
+      <script type="text/html" id="resistor">
+      
+      <div class="resistor">
+        <div class="left"></div>
+        <!-- ko template: { name: 'resistor-band', foreach: bands } --><!-- /ko -->
+        <div class="right"></div>
+      </div>
+      
+    
+    </script>
+</div>
+
+ <script type="text/html" id="resistor-band">
+  <!-- ko with: value -->
+  <div class="band" data-bind="css: {
+    black: index === 0,
+    brown: index === 1,
+    red: index === 2,
+    orange: index === 3,
+    yellow: index === 4,
+    green: index === 5,
+    blue: index === 6,
+    violet: index === 7,
+    grey: index === 8,
+    white: index === 9,
+    gold: index === 10,
+    silver: index === 11 
+  }"></div>
+  <!-- /ko -->
+
+
+  </script>
+
+
+  <script type="text/html" id="band-selector">
+  <!-- ko template: { name: 'band-selector-band', foreach: bands } --><!-- /ko -->
+  </script>
+  <script type="text/html" id="band-selector-band">
+  <select  class="text-center" data-bind="value: value, options: options, optionsText: function(option){return option.text}"></select>
+</script>
+
+  <script type="text/html" id="resistor-value">
+  <input  class="text-center" data-bind="value: calculateResistance" />
+</script>
+
+  <!-- HTML ENTRYPOINTS -->
+  <div data-bind="template: {name: 'resistor'}"></div>
+  <div data-bind="template: {name: 'band-selector'}"></div>
+  <div data-bind="template: {name: 'resistor-value'}"></div>
+
+
+  <!-- SCRIPTS -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.2.1/lodash.min.js"></script>
+
+  <script>
+
+    var digitOptions = [
+      { text: '0 Negro', index: 0, value: 0 },
+      { text: '1 Marrón', index: 1, value: 1 },
+      { text: '2 Rojo', index: 2, value: 2 },
+      { text: '3 Naranja', index: 3, value: 3 },
+      { text: '4 Amarillo', index: 4, value: 4 },
+      { text: '5 Verde', index: 5, value: 5 },
+      { text: '6 Azul', index: 6, value: 6 },
+      { text: '7 Violeta', index: 7, value: 7 },
+      { text: '8 Gris', index: 8, value: 8 },
+      { text: '9 Blanco', index: 9, value: 9 }
+    ];
+    var multiplierOptions = [
+      { text: '1Ω Negro', index: 0, value: 1e0 },
+      { text: '10Ω Marrón', index: 1, value: 1e1 },
+      { text: '100Ω Rojo', index: 2, value: 1e2 },
+      { text: '1KΩ Naranja', index: 3, value: 1e3 },
+      { text: '10KΩ Amarillo', index: 4, value: 1e4 },
+      { text: '100KΩ Verde', index: 5, value: 1e5 },
+      { text: '1MΩ Azul', index: 6, value: 1e6 },
+      { text: '10MΩ Violeta', index: 7, value: 1e7 },
+      { text: '0.1Ω Oro', index: 10, value: 1e-1 },
+      { text: '0.01Ω Plata', index: 11, value: 1e-2 }
+    ];
+    var  toleranceOptions = [
+      { text: '±1% Marrón', index: 1, value: 0.01 },
+      { text: '±2% Rojo', index: 2, value: 0.02 },
+      { text: '±0.5% Verde', index: 5, value: 0.005 },
+      { text: '±0.25% Azul', index: 6, value: 0.0025 },
+      { text: '±0.10% Violeta', index: 7, value: 0.001 },
+      { text: '±0.05% Gris', index: 8, value: 0.0005 },
+      { text: '±5% Oro', index: 10, value: 0.05 },
+      { text: '±10% Plata', index: 11, value: 0.1 }
+    ];
+
+
+
+
+    var Band = function (options) {
+      var options = options || {};
+      if (options.multiplier) {
+        this.options = multiplierOptions;
+      } else if (options.tolerance) {
+        this.options = toleranceOptions;
+      } else {
+        this.options = digitOptions;
+      }
+      var value = _.find(this.options, function (option) {
+        return option.index == options.value;
+      });
+      this.value = ko.observable(value || this.options[0]);
+    }
+    var ViewModel = function () {
+      var self = this;
+      this.bands = ko.observableArray([
+        new Band({ value: 0 }),
+        new Band({ value: 1 }),
+        new Band({ value: 3, multiplier: true }),
+        new Band({ value: 10, tolerance: true })
+      ]);
+      var getBandValue = function (bandIndex) {
+        return self.bands()[bandIndex].value().value;
+      }
+      var getOhmString = function (ohms) {
+        var suffix = 'Ω'
+        if (ohms / 1e6 >= 1) {
+          suffix = 'MΩ';
+          ohms = ohms / 1e6;
+        } else if (ohms / 1e3 >= 1) {
+          suffix = 'KΩ';
+          ohms = ohms / 1e3;
+        }
+        return ohms + suffix;
+      }
+      this.calculateResistance = ko.computed(function () {
+        var ohms = (getBandValue(0) * 10 + getBandValue(1)) * getBandValue(2)
+        return getOhmString(ohms) + ' ±' + getBandValue(3) * 100 + '%';
+      }, this);
+    }
+    ko.applyBindings(new ViewModel);
+
+  </script>
+
+</body>
+
+</html>
