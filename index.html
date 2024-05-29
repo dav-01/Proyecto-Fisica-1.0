@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Resistencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+
+<style>
+    #canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+
+    <div class="container mt-3 " >
+        <div class="card bg-light">
+            <div class="card-title">
+                <h1 class="text-center">Detector de Resistencias</h1>
+            </div>
+            <div class="card-body">
+                  <canvas id="canvas" width="250px" height="250px" style="z-index: 0;" ></canvas>
+                <video id="video" width="100%" height="100%" autoplay></video>
+              
+            
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.10.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script>
+        function obtenerColorPromedio(imagen, x, y, ancho, alto) {
+            const contexto = imagen.getContext('2d');
+            const imageData = contexto.getImageData(x, y, ancho, alto);
+            let sumaR = 0, sumaG = 0, sumaB = 0;
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                sumaR += imageData.data[i];
+                sumaG += imageData.data[i + 1];
+                sumaB += imageData.data[i + 2];
+            }
+            const numPixeles = imageData.data.length / 4;
+            const colorPromedio = {
+                r: Math.round(sumaR / numPixeles),
+                g: Math.round(sumaG / numPixeles),
+                b: Math.round(sumaB / numPixeles)
+            };
+            return colorPromedio;
+        }
+
+        async function run() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    video.srcObject = stream;
+                    await new Promise(resolve => video.onloadedmetadata = resolve);
+                } catch (err) {
+                    console.error('Error al acceder a la cámara', err);
+                    return;
+                }
+            } else {
+                console.error('getUserMedia no es compatible con este navegador');
+                return;
+            }
+
+            const model = await cocoSsd.load();
+
+            async function detectarYAnalizarColor() {
+                const predictions = await model.detect(video);
+                if (predictions.length > 0) {
+                    const objetoEspecifico = 'resistor'; // Cambiar al objeto deseado
+                    // const objetoDetectado = predictions.find(prediction => prediction.class === objetoEspecifico);
+                    const objetoDetectado = predictions.find(prediction => prediction.class);
+
+                    if (objetoDetectado) {
+                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                        ctx.beginPath();
+                        ctx.rect(...objetoDetectado.bbox);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = 'green';
+                        ctx.fillStyle = 'green';
+                        ctx.stroke();
+                        ctx.fillText(objetoDetectado.class, objetoDetectado.bbox[0], objetoDetectado.bbox[1] > 10 ? objetoDetectado.bbox[1] - 5 : 10);
+
+                        const colorPromedio = obtenerColorPromedio(canvas, objetoDetectado.bbox[0], objetoDetectado.bbox[1], objetoDetectado.bbox[2], objetoDetectado.bbox[3]);
+                        console.log('Color promedio de la resistencia:', colorPromedio);
+                    }
+                }
+                requestAnimationFrame(detectarYAnalizarColor);
+            }
+
+            detectarYAnalizarColor();
+        }
+
+        run();
+    </script>
+</body>
+</html>
